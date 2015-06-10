@@ -1,0 +1,1 @@
+/usr/bin/gcc  -Wall -Werror -O3 -fvisibility=hidden  -O3 -DNDEBUG    CMakeFiles/digimap-client.dir/test-server/digimap-client.c.o  -o bin/libwebsockets-digimap-client -rdynamic lib/libwebsockets.a -lz -lssl -lcrypto -lm 

@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+1fdfbd8f5a24ae2152c480c78f52b2a8 CMakeFiles/dist
+f3590aa97e1fbe08ab8c7dca17fcc8b8 CMakeFiles/libwebsockets_rpm
+d2f1b4f9545475218432b3074082cb34 CMakeFiles/libwebsockets_srpm
