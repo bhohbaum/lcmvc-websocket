@@ -72,21 +72,7 @@ struct per_session_data__event_notify {
 #define LOCAL_RESOURCE_PATH INSTALL_DATADIR"/libwebsockets-test-server"
 char *resource_path = LOCAL_RESOURCE_PATH;
 
-/*
- * We take a strict whitelist approach to stop ../ attacks
- */
 
-struct serveable {
-	const char *urlpath;
-	const char *mimetype;
-};
-
-
-/*
- * this is just an example of parsing handshake headers, you don't need this
- * in your code unless you will filter allowing connections by the header
- * content
- */
 
 static void
 dump_handshake_info(struct libwebsocket *wsi, struct per_session_data__event_notify *pss)
@@ -139,9 +125,6 @@ const char * get_mimetype(const char *file)
 
 	return NULL;
 }
-
-
-/* event_notify_protocol */
 
 #define MAX_MESSAGE_QUEUE 1024
 
@@ -263,15 +246,8 @@ done:
 					       libwebsockets_get_protocol(wsi));
 		break;
 
-	/*
-	 * this just demonstrates how to use the protocol filter. If you won't
-	 * study and reject connections based on header content, you don't need
-	 * to handle this callback
-	 */
-
 	case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:
 		dump_handshake_info(wsi, pss);
-		/* you could return non-zero here and kill the connection */
 		break;
 
 	default:
@@ -389,11 +365,6 @@ int main(int argc, char **argv)
 	}
 
 #if !defined(LWS_NO_DAEMONIZE) && !defined(WIN32)
-	/*
-	 * normally lock path would be /var/lock/lwsts or similar, to
-	 * simplify getting started without having to take care about
-	 * permissions or running as root, set to /tmp/.lwsts-lock
-	 */
 	if (daemonize && lws_daemonize("/tmp/.lwsts-lock")) {
 		fprintf(stderr, "Failed to daemonize\n");
 		return 1;
@@ -402,10 +373,7 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, sighandler);
 
-
-	/* tell the library what debug level to emit and to send it to syslog */
 	lws_set_log_level(debug_level, lwsl_emit_syslog);
-
 	lwsl_notice("DigiMap WebSocket Client\n"
 			"(C) Copyright 2015 MediaImpression Unit 08 <bh@miu08.de>\n");
 
@@ -449,36 +417,16 @@ int main(int argc, char **argv)
 	n = 0;
 	while (n >= 0 && !force_exit) {
 		struct timeval tv;
-
 		gettimeofday(&tv, NULL);
-
-		/*
-		 * This provokes the LWS_CALLBACK_SERVER_WRITEABLE for every
-		 * live websocket connection using the DUMB_INCREMENT protocol,
-		 * as soon as it can take more packets (usually immediately)
-		 */
-
 		ms = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 		if ((ms - oldms) > 50) {
 			libwebsocket_callback_on_writable_all_protocol(&protocols[PROTOCOL_EVENT_NOTIFY]);
 			oldms = ms;
 		}
-
-		/*
-		 * If libwebsockets sockets are all we care about,
-		 * you can use this api which takes care of the poll()
-		 * and looping through finding who needed service.
-		 *
-		 * If no socket needs service, it'll return anyway after
-		 * the number of ms in the second argument.
-		 */
-
 		n = libwebsocket_service(context, 50);
-
 	}
 
 	libwebsocket_context_destroy(context);
-
 	lwsl_notice("libwebsockets-digimap-server exited cleanly\n");
 
 	return 0;
