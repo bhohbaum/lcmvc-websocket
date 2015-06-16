@@ -185,7 +185,8 @@ static struct option options[] = {
 
 int main(int argc, char **argv)
 {
-	int n = 0; //pos = 0;
+	int n = 0;
+	int m = 0;
 	int ret = 0;
 	int port = 7681;
 	int use_ssl = 0;
@@ -265,8 +266,10 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	usleep(100000);
-	n = fread(input, 4096, 1, stdin);
+	do {
+		n = fread((char *)(input + m), 4096, 1, stdin);
+		m += n;
+	} while (n > 0);
 
 	lwsl_notice(input);
 
