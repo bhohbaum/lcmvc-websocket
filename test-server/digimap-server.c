@@ -356,10 +356,15 @@ int main(int argc, char **argv)
 			printf("Setting resource path to \"%s\"\n", resource_path);
 			break;
 		case 'h':
-			fprintf(stderr, "Usage: test-server "
-					"[--port=<p>] [--ssl] "
-					"[-d <log bitfield>] "
-					"[--resource_path <path>]\n");
+			fprintf(stderr, "Parameters \n"
+					"[--port=<p>] \n"
+					"[--ssl] \n"
+					"[-d <log bitfield>] \n"
+					"[--resource_path <path>]\n"
+					"\n"
+					"Certificate and Key for SSL must be in the resource path."
+					"Certificate: libwebsockets-digimap-server.pem"
+					"Key: libwebsockets-digimap-server.key.pem");
 			exit(1);
 		}
 	}
@@ -392,13 +397,13 @@ int main(int argc, char **argv)
 			lwsl_err("resource path too long\n");
 			return -1;
 		}
-		sprintf(cert_path, "%s/libwebsockets-test-server.pem",
+		sprintf(cert_path, "%s/libwebsockets-digimap-server.pem",
 								resource_path);
 		if (strlen(resource_path) > sizeof(key_path) - 32) {
 			lwsl_err("resource path too long\n");
 			return -1;
 		}
-		sprintf(key_path, "%s/libwebsockets-test-server.key.pem",
+		sprintf(key_path, "%s/libwebsockets-digimap-server.key.pem",
 								resource_path);
 
 		info.ssl_cert_filepath = cert_path;

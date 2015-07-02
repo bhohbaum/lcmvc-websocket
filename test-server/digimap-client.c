@@ -58,7 +58,7 @@ enum demo_protocols {
 
 typedef struct per_session_data__event_notify {
 	struct libwebsocket *wsi;
-	char msg[4096];
+	char msg[1024 * 64];
 } t_per_session_data__event_notify;
 
 
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
 	int ietf_version = -1; /* latest */
 	struct lws_context_creation_info info;
 
-	input = malloc(4096);
+	input = malloc(1024 * 64);
 	memset(input, 0, sizeof input);
 	memset(&info, 0, sizeof info);
 
@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	}
 
 	do {
-		n = fread((char *)(input + m), 4096, 1, stdin);
+		n = fread((char *)(input + m), 1024 * 64, 1, stdin);
 		m += n;
 	} while (n > 0);
 
