@@ -4,6 +4,8 @@
  *  Created on: 08.06.2015
  *      Author: botho
  *
+ * Copyright (C) 2015 Botho Hohbaum, Media Impression Unit 08 <bh@miu08.de>
+ *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
  *  License as published by the Free Software Foundation:
