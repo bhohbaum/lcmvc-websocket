@@ -20,7 +20,6 @@
  *  MA  02110-1301  USA
  */
 #include "lws_config.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -29,7 +28,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
-
 #ifdef _WIN32
 #include <io.h>
 #ifdef EXTERNAL_POLL
@@ -40,12 +38,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 #endif
-
 #include "../lib/libwebsockets.h"
 
 static int close_testing;
 int max_poll_elements;
-
 #ifdef EXTERNAL_POLL
 struct pollfd *pollfds;
 int *fd_lookup;
@@ -54,14 +50,12 @@ int count_pollfds;
 static volatile int force_exit = 0;
 static struct libwebsocket_context *context;
 
-
 enum demo_protocols {
 	PROTOCOL_EVENT_NOTIFY,
 
 	/* always last */
 	DEMO_PROTOCOL_COUNT
 };
-
 
 struct per_session_data__event_notify {
 	struct libwebsocket *wsi;
@@ -72,11 +66,7 @@ struct per_session_data__event_notify {
 #define LOCAL_RESOURCE_PATH INSTALL_DATADIR"/libwebsockets-test-server"
 char *resource_path = LOCAL_RESOURCE_PATH;
 
-
-
-static void
-dump_handshake_info(struct libwebsocket *wsi, struct per_session_data__event_notify *pss)
-{
+static void dump_handshake_info(struct libwebsocket *wsi, struct per_session_data__event_notify *pss) {
 	int n = 0;
 	char buf[256];
 	const unsigned char *c;
@@ -87,42 +77,36 @@ dump_handshake_info(struct libwebsocket *wsi, struct per_session_data__event_not
 			n++;
 			continue;
 		}
-
 		if (!lws_hdr_total_length(wsi, n)) {
 			n++;
 			continue;
 		}
-
 		lws_hdr_copy(wsi, buf, sizeof buf, n);
-
 		if (strncmp((char *)c, "get ", 4) == 0) {
 			if (pss != NULL) {
 				strncpy(pss->id, (char *)&buf[1], 32);
 				pss->id[32] = '\0';
 			}
 		}
-
 		fprintf(stderr, "    %s = %s\n", (char *)c, buf);
 		n++;
 	} while (c);
 }
 
-const char * get_mimetype(const char *file)
-{
+const char * get_mimetype(const char *file) {
 	int n = strlen(file);
-
-	if (n < 5)
+	if (n < 5) {
 		return NULL;
-
-	if (!strcmp(&file[n - 4], ".ico"))
+	}
+	if (!strcmp(&file[n - 4], ".ico")) {
 		return "image/x-icon";
-
-	if (!strcmp(&file[n - 4], ".png"))
+	}
+	if (!strcmp(&file[n - 4], ".png")) {
 		return "image/png";
-
-	if (!strcmp(&file[n - 5], ".html"))
+	}
+	if (!strcmp(&file[n - 5], ".html")) {
 		return "text/html";
-
+	}
 	return NULL;
 }
 
@@ -136,24 +120,19 @@ struct a_message {
 static struct a_message ringbuffer[MAX_MESSAGE_QUEUE];
 static int ringbuffer_head;
 
-
-static int
-callback_event_dispatch(struct libwebsocket_context *context,
-			struct libwebsocket *wsi,
-			enum libwebsocket_callback_reasons reason,
-					       void *user, void *in, size_t len)
+static int callback_event_dispatch(struct libwebsocket_context *context,
+									struct libwebsocket *wsi,
+									enum libwebsocket_callback_reasons reason,
+									void *user, void *in, size_t len)
 {
 	int n;
 	struct per_session_data__event_notify *pss = (struct per_session_data__event_notify *)user;
-
 	switch (reason) {
-
 	case LWS_CALLBACK_ESTABLISHED:
 		lwsl_info("callback_lws_mirror: LWS_CALLBACK_ESTABLISHED\n");
 		pss->ringbuffer_tail = ringbuffer_head;
 		pss->wsi = wsi;
 		break;
-
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
 		lwsl_notice("mirror protocol cleaning up\n");
 		for (n = 0; n < sizeof ringbuffer / sizeof ringbuffer[0]; n++)
@@ -161,40 +140,31 @@ callback_event_dispatch(struct libwebsocket_context *context,
 				free(ringbuffer[n].payload);
 			}
 		break;
-
 	case LWS_CALLBACK_SERVER_WRITEABLE:
 		if (close_testing)
 			break;
-
 		while (pss->ringbuffer_tail != ringbuffer_head) {
 			n = 0;
 			if (strncmp((char *)ringbuffer[pss->ringbuffer_tail].payload + LWS_SEND_BUFFER_PRE_PADDING, pss->id, 32) == 0) {
-				n = libwebsocket_write(wsi, (unsigned char *)
-					   ringbuffer[pss->ringbuffer_tail].payload +
-					   LWS_SEND_BUFFER_PRE_PADDING,
-					   ringbuffer[pss->ringbuffer_tail].len,
-									LWS_WRITE_TEXT);
+				n = libwebsocket_write(wsi, (unsigned char *) ringbuffer[pss->ringbuffer_tail].payload + LWS_SEND_BUFFER_PRE_PADDING,
+						ringbuffer[pss->ringbuffer_tail].len, LWS_WRITE_TEXT);
 			}
 			if (n < 0) {
 				lwsl_err("ERROR %d writing to mirror socket\n", n);
 				return -1;
 			}
-			if (n < ringbuffer[pss->ringbuffer_tail].len)
-				lwsl_err("mirror partial write %d vs %d\n",
-					   n, ringbuffer[pss->ringbuffer_tail].len);
-
-			if (pss->ringbuffer_tail == (MAX_MESSAGE_QUEUE - 1))
+			if (n < ringbuffer[pss->ringbuffer_tail].len) {
+				lwsl_err("mirror partial write %d vs %d\n", n, ringbuffer[pss->ringbuffer_tail].len);
+			}
+			if (pss->ringbuffer_tail == (MAX_MESSAGE_QUEUE - 1)) {
 				pss->ringbuffer_tail = 0;
-			else
+			} else {
 				pss->ringbuffer_tail++;
-
-			if (((ringbuffer_head - pss->ringbuffer_tail) &
-				  (MAX_MESSAGE_QUEUE - 1)) == (MAX_MESSAGE_QUEUE - 15))
-				libwebsocket_rx_flow_allow_all_protocol(
-						   libwebsockets_get_protocol(wsi));
-
+			}
+			if (((ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1)) == (MAX_MESSAGE_QUEUE - 15)) {
+				libwebsocket_rx_flow_allow_all_protocol(libwebsockets_get_protocol(wsi));
+			}
 			lwsl_debug("tx fifo %d\n", (ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1));
-
 			if (lws_partial_buffered(wsi) || lws_send_pipe_choked(wsi)) {
 				libwebsocket_callback_on_writable(context, wsi);
 				break;
@@ -210,50 +180,38 @@ callback_event_dispatch(struct libwebsocket_context *context,
 #endif
 		}
 		break;
-
 	case LWS_CALLBACK_RECEIVE:
-		if (((ringbuffer_head - pss->ringbuffer_tail) &
-				  (MAX_MESSAGE_QUEUE - 1)) == (MAX_MESSAGE_QUEUE - 1)) {
+		if (((ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1)) == (MAX_MESSAGE_QUEUE - 1)) {
 			lwsl_err("dropping!\n");
 			goto choke;
 		}
-
-		if (ringbuffer[ringbuffer_head].payload)
+		if (ringbuffer[ringbuffer_head].payload) {
 			free(ringbuffer[ringbuffer_head].payload);
-
-		ringbuffer[ringbuffer_head].payload =
-				malloc(LWS_SEND_BUFFER_PRE_PADDING + len +
-						  LWS_SEND_BUFFER_POST_PADDING);
+		}
+		ringbuffer[ringbuffer_head].payload = malloc(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
 		ringbuffer[ringbuffer_head].len = len;
-		memcpy((char *)ringbuffer[ringbuffer_head].payload +
-					  LWS_SEND_BUFFER_PRE_PADDING, in, len);
-		if (ringbuffer_head == (MAX_MESSAGE_QUEUE - 1))
+		memcpy((char *)ringbuffer[ringbuffer_head].payload + LWS_SEND_BUFFER_PRE_PADDING, in, len);
+		if (ringbuffer_head == (MAX_MESSAGE_QUEUE - 1)) {
 			ringbuffer_head = 0;
-		else
+		} else {
 			ringbuffer_head++;
-
-		if (((ringbuffer_head - pss->ringbuffer_tail) &
-				  (MAX_MESSAGE_QUEUE - 1)) != (MAX_MESSAGE_QUEUE - 2))
+		}
+		if (((ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1)) != (MAX_MESSAGE_QUEUE - 2)) {
 			goto done;
-
+		}
 choke:
 		lwsl_debug("LWS_CALLBACK_RECEIVE: throttling %p\n", wsi);
 		libwebsocket_rx_flow_control(wsi, 0);
-
 		lwsl_debug("rx fifo %d\n", (ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1));
 done:
-		libwebsocket_callback_on_writable_all_protocol(
-					       libwebsockets_get_protocol(wsi));
+		libwebsocket_callback_on_writable_all_protocol(libwebsockets_get_protocol(wsi));
 		break;
-
 	case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:
 		dump_handshake_info(wsi, pss);
 		break;
-
 	default:
 		break;
 	}
-
 	return 0;
 }
 
@@ -270,8 +228,7 @@ static struct libwebsocket_protocols protocols[] = {
 	{ NULL, NULL, 0, 0 } /* terminator */
 };
 
-void sighandler(int sig)
-{
+void sighandler(int sig) {
 	force_exit = 1;
 	libwebsocket_cancel_service(context);
 }
@@ -292,8 +249,7 @@ static struct option options[] = {
 	{ NULL, 0, 0, 0 }
 };
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	char cert_path[1024];
 	char key_path[1024];
 	int n = 0;
@@ -308,10 +264,8 @@ int main(int argc, char **argv)
 #ifndef LWS_NO_DAEMONIZE
 	int daemonize = 0;
 #endif
-
 	memset(&info, 0, sizeof info);
 	info.port = 7681;
-
 	while (n >= 0) {
 		n = getopt_long(argc, argv, "eci:hsap:d:Dr:", options, NULL);
 		if (n < 0)
@@ -348,8 +302,8 @@ int main(int argc, char **argv)
 		case 'c':
 			close_testing = 1;
 			fprintf(stderr, " Close testing mode -- closes on "
-					   "client after 50 dumb increments"
-					   "and suppresses lws_mirror spam\n");
+							"client after 50 dumb increments"
+							"and suppresses lws_mirror spam\n");
 			break;
 		case 'r':
 			resource_path = optarg;
@@ -357,14 +311,14 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			fprintf(stderr, "Parameters \n"
-					"[--port=<p>] \n"
-					"[--ssl] \n"
-					"[-d <log bitfield>] \n"
-					"[--resource_path <path>]\n"
-					"\n"
-					"Certificate and Key for SSL must be in the resource path."
-					"Certificate: libwebsockets-digimap-server.pem"
-					"Key: libwebsockets-digimap-server.key.pem");
+							"[--port=<p>] \n"
+							"[--ssl] \n"
+							"[-d <log bitfield>] \n"
+							"[--resource_path <path>]\n"
+							"\n"
+							"Certificate and Key for SSL must be in the resource path."
+							"Certificate: libwebsockets-digimap-server.pem"
+							"Key: libwebsockets-digimap-server.key.pem");
 			exit(1);
 		}
 	}
@@ -375,15 +329,10 @@ int main(int argc, char **argv)
 		return 1;
 	}
 #endif
-
 	signal(SIGINT, sighandler);
-
 	lws_set_log_level(debug_level, lwsl_emit_syslog);
-	lwsl_notice("DigiMap WebSocket Client\n"
-			"(C) Copyright 2015 MediaImpression Unit 08 <bh@miu08.de>\n");
-
+	lwsl_notice("DigiMap WebSocket Client\n(C) Copyright 2015 MediaImpression Unit 08 <bh@miu08.de>\n");
 	printf("Using resource path \"%s\"\n", resource_path);
-
 	info.iface = iface;
 	info.protocols = protocols;
 #ifndef LWS_NO_EXTENSIONS
@@ -397,28 +346,23 @@ int main(int argc, char **argv)
 			lwsl_err("resource path too long\n");
 			return -1;
 		}
-		sprintf(cert_path, "%s/libwebsockets-digimap-server.pem",
-								resource_path);
+		sprintf(cert_path, "%s/libwebsockets-digimap-server.pem", resource_path);
 		if (strlen(resource_path) > sizeof(key_path) - 32) {
 			lwsl_err("resource path too long\n");
 			return -1;
 		}
-		sprintf(key_path, "%s/libwebsockets-digimap-server.key.pem",
-								resource_path);
-
+		sprintf(key_path, "%s/libwebsockets-digimap-server.key.pem", resource_path);
 		info.ssl_cert_filepath = cert_path;
 		info.ssl_private_key_filepath = key_path;
 	}
 	info.gid = -1;
 	info.uid = -1;
 	info.options = opts;
-
 	context = libwebsocket_create_context(&info);
 	if (context == NULL) {
 		lwsl_err("libwebsocket init failed\n");
 		return -1;
 	}
-
 	n = 0;
 	while (n >= 0 && !force_exit) {
 		struct timeval tv;
@@ -430,9 +374,7 @@ int main(int argc, char **argv)
 		}
 		n = libwebsocket_service(context, 50);
 	}
-
 	libwebsocket_context_destroy(context);
 	lwsl_notice("libwebsockets-digimap-server exited cleanly\n");
-
 	return 0;
 }
