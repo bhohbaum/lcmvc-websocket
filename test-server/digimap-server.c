@@ -65,7 +65,7 @@ struct per_session_data__event_notify {
 	char id[33];
 };
 
-#define LOCAL_RESOURCE_PATH INSTALL_DATADIR"/libwebsockets-test-server"
+#define LOCAL_RESOURCE_PATH  "."
 char *resource_path = LOCAL_RESOURCE_PATH;
 
 static void dump_handshake_info(struct libwebsocket *wsi, struct per_session_data__event_notify *pss) {

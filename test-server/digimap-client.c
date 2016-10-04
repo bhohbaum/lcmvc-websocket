@@ -44,6 +44,7 @@ static volatile int force_exit = 0;
 static int longlived = 0;
 static char *input;
 static int msg_sent = 0;
+static unsigned char *buf;
 
 enum demo_protocols {
 	PROTOCOL_EVENT_NOTIFY,
@@ -106,6 +107,7 @@ callback_event_dispatch(struct libwebsocket_context *context,
 			wsi_event = NULL;
 			break;
 		case LWS_CALLBACK_CLIENT_RECEIVE:
+			libwebsocket_read(context, wsi, buf, sizeof(buf));
 			break;
 		case LWS_CALLBACK_CLIENT_WRITEABLE:
 			strcpy(pss->msg, input);
@@ -169,8 +171,9 @@ int main(int argc, char **argv) {
 	struct lws_context_creation_info info;
 
 	input = malloc(1024 * 64);
-	memset(input, 0, sizeof input);
-	memset(&info, 0, sizeof info);
+	memset(input, 0, sizeof(*input));
+	memset(&info, 0, sizeof(info));
+	buf = malloc(1024 * 64);
 	lwsl_notice("DigiMap WebSocket Client\n"
 			"(C) Copyright 2015 MediaImpression Unit 08 <bh@miu08.de>\n");
 	if (argc < 2) {
@@ -256,6 +259,7 @@ int main(int argc, char **argv) {
 bail:
 	lwsl_notice("Exiting\n");
 	libwebsocket_context_destroy(context);
+	free(buf);
 	return ret;
 usage:
 	fprintf(stderr, "Usage: libwebsockets-test-client "
