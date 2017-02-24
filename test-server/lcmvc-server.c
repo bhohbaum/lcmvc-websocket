@@ -1,5 +1,5 @@
 /*
- * digimap-server.c
+ * lcmvc-server.c
  *
  *  Created on: 08.06.2015
  *      Author: botho
@@ -319,8 +319,8 @@ int main(int argc, char **argv) {
 							"[--resource_path <path>]\n"
 							"\n"
 							"Certificate and Key for SSL must be in the resource path."
-							"Certificate: libwebsockets-digimap-server.pem"
-							"Key: libwebsockets-digimap-server.key.pem");
+							"Certificate: libwebsockets-lcmvc-server.pem"
+							"Key: libwebsockets-lcmvc-server.key.pem");
 			exit(1);
 		}
 	}
@@ -348,12 +348,12 @@ int main(int argc, char **argv) {
 			lwsl_err("resource path too long\n");
 			return -1;
 		}
-		sprintf(cert_path, "%s/libwebsockets-digimap-server.pem", resource_path);
+		sprintf(cert_path, "%s/libwebsockets-lcmvc-server.pem", resource_path);
 		if (strlen(resource_path) > sizeof(key_path) - 32) {
 			lwsl_err("resource path too long\n");
 			return -1;
 		}
-		sprintf(key_path, "%s/libwebsockets-digimap-server.key.pem", resource_path);
+		sprintf(key_path, "%s/libwebsockets-lcmvc-server.key.pem", resource_path);
 		info.ssl_cert_filepath = cert_path;
 		info.ssl_private_key_filepath = key_path;
 	}
@@ -377,6 +377,6 @@ int main(int argc, char **argv) {
 		n = libwebsocket_service(context, 50);
 	}
 	libwebsocket_context_destroy(context);
-	lwsl_notice("libwebsockets-digimap-server exited cleanly\n");
+	lwsl_notice("libwebsockets-lcmvc-server exited cleanly\n");
 	return 0;
 }

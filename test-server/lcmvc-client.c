@@ -1,5 +1,5 @@
 /*
- * digimap-client.c
+ * lcmvc-client.c
  *
  *  Created on: 08.06.2015
  *      Author: botho

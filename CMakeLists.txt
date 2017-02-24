@@ -648,7 +648,7 @@ if (NOT LWS_WITHOUT_TESTAPPS)
 		#
 		if (NOT LWS_WITHOUT_TEST_SERVER)
 			create_test_app(test-server "test-server/test-server.c")
-			create_test_app(digimap-server "test-server/digimap-server.c")
+			create_test_app(lcmvc-server "test-server/lcmvc-server.c")
 		endif()
 
 		#
@@ -754,7 +754,7 @@ if (NOT LWS_WITHOUT_TESTAPPS)
 		#
 		if (NOT LWS_WITHOUT_TEST_CLIENT)
 			create_test_app(test-client "test-server/test-client.c")
-			create_test_app(digimap-client "test-server/digimap-client.c")
+			create_test_app(lcmvc-client "test-server/lcmvc-client.c")
 		endif()
 
 		#
